@@ -2,22 +2,19 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Install dependencies
-COPY package*.json ./
+# copy lockfile + manifest
+COPY package.json package-lock.json ./
+
+# install exact deps
 RUN npm ci
 
-# Copy source & build
+# copy rest of source, then build
 COPY . .
 RUN npm run build
 
-# --- Production Stage ---
+# --- Serve Stage ---
 FROM nginx:stable-alpine
-# Copy built files to nginx’s public folder
 COPY --from=builder /app/build /usr/share/nginx/html
-
-# (Optional) Add a basic nginx config if you need SPA fallback:
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
-
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 
