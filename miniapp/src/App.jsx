@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { I18nextProvider } from 'react-i18next';
-import i18n from './i18n';
-import { tg } from './lib/telegram';
-import Home from './pages/Home';
-import Learn from './pages/Learn';
-import Translation from './pages/Translation';
-import Results from './pages/Results.jsx';
+import i18n from '@/i18n';
+import { tg } from '@/lib/telegram';
+import Home from '@/pages/Home';
+import Learn from '@/pages/Learn';
+import Translation from '@/pages/Translation';
+import Results from '@/pages/Results.jsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 export default function App() {

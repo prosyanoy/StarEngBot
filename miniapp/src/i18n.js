@@ -18,7 +18,12 @@ export const resources = {
       'Correct!': 'Correct!',
       Skip: 'Skip',
       'to be learned': 'to be learned',
-      Sort: 'Sort'
+      Sort: 'Sort',
+      'to be repeated': 'to be repeated',
+      Repeat: 'Repeat',
+      'No translation tasks': 'No translation tasks available.',
+      Back: 'Back',
+      Play: 'Play',
     },
   },
   ru: {
@@ -37,7 +42,12 @@ export const resources = {
       'Correct!': 'Верно!',
       Skip: 'Пропустить',
       'to be learned': 'к изучению',
-      Sort: 'Сортировать'
+      Sort: 'Сортировать',
+      'to be repeated': 'повторить',
+      Repeat: 'Повторить',
+      'No translation tasks': 'Нет заданий на перевод.',
+      Back: 'Назад',
+      Play: 'Прослушать',
     },
   },
 };

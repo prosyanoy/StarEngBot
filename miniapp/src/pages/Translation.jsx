@@ -1,5 +1,5 @@
 // src/pages/Translation.jsx
-import { useState } from 'react';
+import {useEffect, useRef, useState} from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -34,6 +34,27 @@ export default function Translation() {
   const [progress, setProg]     = useState(0);
 
   const task = tasks[idx];
+
+  /* ───────── audio handling ───────── */
+  const playerRef = useRef(null);        // <HTMLAudioElement | null>
+
+  useEffect(() => {
+    if (task.type === 'audio-ru') {
+      // stop previous sound
+      playerRef.current?.pause();
+      // create new player and store it in the ref
+      const player = new Audio(task.audio);
+      playerRef.current = player;
+      player.play().catch(() => {});
+    }
+    // cleanup on unmount / task change
+    return () => {
+      playerRef.current?.pause();
+      playerRef.current = null;
+    };
+  }, [task]);
+
+  const replayAudio = () => playerRef.current?.play();
 
   /* ───── move to next task ───── */
   const nextTask = () => {
@@ -97,7 +118,12 @@ export default function Translation() {
 
       {/* prompt */}
       {task.type === 'audio-ru' ? (
-        <audio key={task.id} src={task.audio} autoPlay controls className="mb-6" />
+        <button
+          onClick={replayAudio}
+          className="mb-6 px-6 py-3 rounded-full bg-blue-600 text-white font-medium active:bg-blue-700"
+        >
+          🔊 {t('Play')}
+        </button>
       ) : (
         <h1 className="text-3xl font-bold mb-6">{task.word}</h1>
       )}
