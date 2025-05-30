@@ -7,7 +7,7 @@ import { AuthProvider } from '@/lib/api';
 import {BrowserRouter} from "react-router-dom";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-    <BrowserRouter basename="/stareng">
+    <BrowserRouter>
       <AuthProvider>
         <App />
       </AuthProvider>
