@@ -1,10 +1,10 @@
-# backend/api.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from db import lifespan_context   # re-uses same engine
+from db import lifespan_context
 
-from backend.routers import authentication, collections, learning
+from backend.routers import authentication, collections, learning, tasks, pronunciation
+
 
 def build_api() -> FastAPI:
     app = FastAPI(title="StarEng API", lifespan=lifespan_context)
@@ -13,6 +13,8 @@ def build_api() -> FastAPI:
     app.include_router(collections.router)
     app.include_router(learning.learning_router)
     app.include_router(learning.repeat_router)
+    app.include_router(tasks.router)
+    app.include_router(pronunciation.router)
 
     # CORS – adjust domains in prod
     app.add_middleware(

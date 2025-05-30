@@ -9,9 +9,12 @@ from sqlalchemy.orm import selectinload
 from backend.deps import get_session
 from bot.models import AddedWord, Word, Translation, User
 from backend.auth import get_current_user         # JWT → User
-from backend.models import WordResponse, TranslationTask
+from backend.models import TranslationTask, TasksResponse, SpellingTask, PronunciationTask, Pair, MatchingTask, \
+    ContextTask
 
-router = APIRouter(prefix="/translation", tags=["translation"])
+from bot.ai import Sentences, get_context_sentences
+
+router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 CEFR_ATTEMPTS = {"A": 3, "B": 2, "C": 1, None: 3}
 
@@ -25,8 +28,9 @@ def mix_variants(correct: str, distractors: list[str]) -> tuple[list[str], int]:
     return opts, opts.index(correct)
 
 # ---------- endpoint ----------
-@router.get("/", response_model=List[TranslationTask])
+@router.get("/{collection_id}", response_model=TasksResponse)
 async def translation_tasks(
+    collection_id: int,
     word_ids: List[int] = Query(..., alias="word_ids"),
     db: AsyncSession = Depends(get_session),
     user: User = Depends(get_current_user),
@@ -48,6 +52,7 @@ async def translation_tasks(
         .where(
             AddedWord.user_id == user.id,
             AddedWord.word_id.in_(word_ids),
+            AddedWord.collection_id == collection_id,
         )
     )
     rows: list[AddedWord] = (await db.execute(rows_stmt)).scalars().all()
@@ -57,7 +62,6 @@ async def translation_tasks(
     pool_ru = list({r.translation.translation for r in rows})  # unique set → list
     pool_eng = list({r.word.english_word for r in rows})
 
-    # remove the correct value so it's never sampled as a distractor
     def safe_pool(value: str, pool: list[str]) -> list[str]:
         return [p for p in pool if p != value]
 
@@ -86,17 +90,20 @@ async def translation_tasks(
 
     attempts = CEFR_ATTEMPTS.get(user.cefr)
 
-    tasks: list[TranslationTask] = []
+    tr_tasks: list[TranslationTask] = []
     t_id = 1
 
     n = len(rows)
+    print("audio: ")
+    print(rows[0].word.audio)
+    # 1) ── TranslationTask
     # ru-eng task
     for r in rows:
         variants, correct = mix_variants(
             r.word.english_word,
             safe_pool(r.word.english_word, pool_eng)
         )
-        tasks.append(
+        tr_tasks.append(
             TranslationTask(
                 id=f"t{t_id}", type="ru-eng", word=r.translation.translation,
                 variants=variants, correct=correct, attempts=attempts
@@ -114,7 +121,7 @@ async def translation_tasks(
             r.translation.translation,
             safe_pool(r.translation.translation, pool_ru)
         )
-        tasks.append(
+        tr_tasks.append(
             TranslationTask(
                 id=f"t{t_id}", type="audio-ru", word=r.word.english_word, audio=f"https://audio.stdio.bot/{r.word.english_word}_0.ogg",
                 variants=variants, correct=correct, attempts=attempts
@@ -129,7 +136,7 @@ async def translation_tasks(
             r.translation.translation,
             safe_pool(r.translation.translation, pool_ru)
         )
-        tasks.append(
+        tr_tasks.append(
             TranslationTask(
                 id=f"t{t_id}", type="eng-ru", word=r.word.english_word,
                 variants=variants, correct=correct, attempts=attempts
@@ -137,5 +144,60 @@ async def translation_tasks(
         )
         t_id += 1
 
-    random.shuffle(tasks)
+    random.shuffle(tr_tasks)
+
+    # 2) ── SpellingTask
+    sp_tasks: list[SpellingTask] = []
+    for r in rows:
+        typo_limit = 1 if user.cefr == "A" else 0
+        sp_tasks.append(
+            SpellingTask(
+                id=f"t{t_id}",
+                en=r.word.english_word,
+                ru=r.translation.translation,
+                mistakes=typo_limit,
+            )
+        )
+        t_id += 1
+    random.shuffle(sp_tasks)
+
+    # 3) ── PronunciationTask
+    pr_tasks: list[PronunciationTask] = []
+    for r in audio_candidates:
+        if not r.word.audio:
+            continue
+        pr_tasks.append(
+            PronunciationTask(
+                id=f"t{t_id}",
+                en=r.word.english_word,
+                ru=r.translation.translation,
+            )
+        )
+        t_id += 1
+        # second card: Russian prompt (same audio)
+        pr_tasks.append(
+            PronunciationTask(
+                id=f"t{t_id}",
+                en=r.word.english_word,
+                ru=r.translation.translation,
+            )
+        )
+        t_id += 1
+    random.shuffle(pr_tasks)
+
+    cx_tasks: list[ContextTask] = []
+    for r in rows:
+        res: Sentences = await get_context_sentences(r.word.english_word, r.translation.translation, user.cefr)
+        cx_tasks.append(ContextTask(id=f"t{t_id}", en=res.en, ru=res.ru))
+        t_id += 1
+    random.shuffle(cx_tasks)
+
+    tasks = tr_tasks + sp_tasks + pr_tasks + cx_tasks
+
+    # 4) ── MatchingTask
+    pairs = [Pair(en=r.word.english_word, ru=r.translation.translation) for r in rows]
+    tasks.append(MatchingTask(id=f"t{t_id}", pairs=pairs))
+    t_id += 1
+
+    print(tasks)
     return tasks
