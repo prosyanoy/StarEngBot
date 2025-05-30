@@ -11,6 +11,8 @@ from spellchecker import SpellChecker
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
+
 from bot.models import User, Word, Collection, Translation, AddedWord
 from pydantic import BaseModel
 from bot.ai import TranslationModel, Translations, get_gpt_translations
@@ -47,22 +49,33 @@ async def check_collections(callback: CallbackQuery, state: FSMContext, db_sessi
         return None
     return collections
 
-async def fetch_translations_from_db(word: str, session: AsyncSession) -> Optional[Translations]:
+async def fetch_translations_from_db(
+    word: str,
+    session: AsyncSession
+) -> Optional[Translations]:
+
     result = await session.execute(
-        select(Word, Translation).join(Translation).where(Word.english_word == word)
+        select(Translation)
+        .join(Word)                       # INNER JOIN words
+        .where(Word.english_word == word)
+        .options(joinedload(Translation.word))   # optional – eager-load
     )
-    rows = result.all()
-    if not rows:
+
+    translations = result.scalars().all()        # list[Translation]
+
+    if not translations:
         return None
-    _, *translations = zip(*rows)   # распаковываем
+
     models = [
         TranslationModel(
             transcription=t.transcription or "",
             translation=t.translation,
             example_en=t.example_en or "",
             example_ru=t.example_ru or "",
-        ) for t in translations
+        )
+        for t in translations
     ]
+
     return Translations(word=word, translations=models)
 
 # ------------ add word -----------------------------------------------
@@ -85,7 +98,7 @@ async def auto_add_word(message: Message,
 async def process_english_word(
     english_word: str,
     state: FSMContext,
-    db_session: AsyncSession,      # ← добавили явный аргумент
+    db_session: AsyncSession,
     message: Optional[Message] = None,
     callback: Optional[CallbackQuery] = None
 ):

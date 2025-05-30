@@ -81,3 +81,38 @@ async def get_translation_options(english_word: str, level: str) -> Optional[Opt
     except Exception as e:
         logging.error(f"Ошибка при запросе к GPT: {e}")
         return []
+
+class Sentences(BaseModel):
+    en: str
+    ru: str
+
+async def get_context_sentences(english_word: str, russian_word: str, level: str) -> Optional[Sentences]:
+    if level == 'A':
+        level = "Beginner"
+    elif level == 'B':
+        level = "Intermediate"
+    elif level == 'C':
+        level = "Advanced"
+
+    try:
+        response = await client.responses.parse(
+            model="gpt-4.1-nano",
+            input=[
+                {
+                    "role": "system",
+                    "content": f"You are given an English word. You will return a very short sentence (en) with that word which {level} English learner should be to understand, and the sentence translation in Russian (ru) with the word meaning \"{russian_word}\""
+                },
+                {
+                    "role": "user",
+                    "content": english_word
+                }
+            ],
+            text_format=Sentences,
+            max_output_tokens=256,
+            temperature=0.5,
+            top_p=1,
+        )
+        return response.output_parsed
+    except Exception as e:
+        logging.error(f"Ошибка при запросе к GPT: {e}")
+        return []
