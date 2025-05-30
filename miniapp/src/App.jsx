@@ -24,17 +24,15 @@ export default function App() {
 
   return (
     <I18nextProvider i18n={i18n}>
-      <BrowserRouter basename="/stareng">
-        <Routes>
-          <Route index element={<Home lang={lang} />} />
-          <Route path="/learn/:collectionId" element={<Learn />} />
-          <Route path="/learnflow/:id" element={<LearnFlow />} />
-          <Route path="/translate/:id" element={<Translation />} />
-          <Route path="/spelling/:id"    element={<SpellingStage />} />
-          <Route path="/pronounce/:id"   element={<PronounceStage />} />
-          <Route path="/results/:id"   element={<Results />} />
-        </Routes>
-      </BrowserRouter>
+      <Routes>
+        <Route index element={<Home lang={lang} />} />
+        <Route path="/learn/:collectionId" element={<Learn />} />
+        <Route path="/learnflow/:id" element={<LearnFlow />} />
+        <Route path="/translate/:id" element={<Translation />} />
+        <Route path="/spelling/:id"    element={<SpellingStage />} />
+        <Route path="/pronounce/:id"   element={<PronounceStage />} />
+        <Route path="/results/:id"   element={<Results />} />
+      </Routes>
     </I18nextProvider>
   );
 }
