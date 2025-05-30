@@ -6,11 +6,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # install exact deps
-RUN npm ci
-
-# copy rest of source, then build
 COPY . .
-RUN npm run build
+RUN npm ci && run build
+
 
 # --- Serve Stage ---
 FROM nginx:stable-alpine
