@@ -24,7 +24,7 @@ export default function App() {
 
   return (
     <I18nextProvider i18n={i18n}>
-      <BrowserRouter>
+      <BrowserRouter basename="/stareng">
         <Routes>
           <Route index element={<Home lang={lang} />} />
           <Route path="/learn/:collectionId" element={<Learn />} />
