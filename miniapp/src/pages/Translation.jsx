@@ -1,65 +1,66 @@
-// src/pages/Translation.jsx
-import {useEffect, useRef, useState} from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import {useSearchParams, useLocation, useNavigate, useParams} from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import translationData from '@/data/translation';      // ← the object you pasted
 import OptionButton   from '@/components/OptionButton';
 import ProgressBar    from '@/components/ProgressBar';
 
-export default function Translation() {
-  const { id }   = useParams();          // "1"
+export default function Translation({tasks, onFinish}) {
   const nav      = useNavigate();
   const { t }    = useTranslation();
 
-  /* ───── tasks for this collection ───── */
-  const tasks = translationData[id] ?? [];
-  if (tasks.length === 0) {
-    return (
-      <div className="p-6 text-center">
-        <p className="mb-4">{t('No translation tasks')}</p>
-        <button className="text-blue-600 underline" onClick={()=>nav('/')}>
-          {t('Back')}
-        </button>
-      </div>
-    );
-  }
+  const [score, setScore] = useState(0);          // 0-30 %
 
   /* ───── local state ───── */
   const [idx, setIdx]           = useState(0);           // which task
-  const [attempts, setAtt]      = useState(tasks[0].attempts);
+  const [attempts, setAtt]      = useState(0);
   const [reveal, setReveal]     = useState(false);       // show correct = true
   const [wrongIdx, setWrong]    = useState(null);        // index flashing red
   const [disabled, setDis]      = useState([]);          // wrong options so far
   const [progress, setProg]     = useState(0);
 
-  const task = tasks[idx];
+  // ─── ensure attempts sync with the current task ────────────────────
+  useEffect(() => {
+    if (tasks.length) {
+      setAtt(tasks[0].attempts ?? 1);
+    }
+  }, [tasks]);
 
-  /* ───────── audio handling ───────── */
-  const playerRef = useRef(null);        // <HTMLAudioElement | null>
+  console.log("tasks", tasks);
+  // ─── current task (safe even if tasks is empty) ────────────────────
+  const task = tasks[idx] ?? {};
+
+  // ─── audio player ref & effect (always run) ────────────────────────
+  const playerRef = useRef(null);
 
   useEffect(() => {
-    if (task.type === 'audio-ru') {
-      // stop previous sound
-      playerRef.current?.pause();
-      // create new player and store it in the ref
-      const player = new Audio(task.audio);
-      playerRef.current = player;
-      player.play().catch(() => {});
+    if (
+      task.kind !== 'translation' ||
+      task.type  !== 'audio-ru'   ||
+      !task.audio
+    ) {
+      return;
     }
-    // cleanup on unmount / task change
+
+    playerRef.current?.pause();
+    const player = new Audio(task.audio);
+    playerRef.current = player;
+    player.play().catch(()=>{});
+
     return () => {
       playerRef.current?.pause();
       playerRef.current = null;
     };
   }, [task]);
 
+  if (tasks.length === 0) return <p>No tasks</p>;
+
   const replayAudio = () => playerRef.current?.play();
 
   /* ───── move to next task ───── */
   const nextTask = () => {
     const next = idx + 1;
-    if (next >= tasks.length) return nav(`/results/${id}`);
+    if (next >= tasks.length) return onFinish();
 
     setIdx(next);
     setProg(p => p + 3);
@@ -74,7 +75,10 @@ export default function Translation() {
     if (reveal || wrongIdx !== null) return;             // ignore during flash / reveal
 
     const isCorrect = i === task.correct;
-
+    if (isCorrect) {
+      const perTask = 3 * (10 / tasks.length);      // 3% scaled
+      setScore(s => s + perTask);
+    }
     if (isCorrect) {
       setReveal(true);
       setTimeout(nextTask, 1000);
@@ -127,6 +131,10 @@ export default function Translation() {
       ) : (
         <h1 className="text-3xl font-bold mb-6">{task.word}</h1>
       )}
+
+      <p className="text-xs text-gray-500 mb-2">
+        {t('Score')}: {score.toFixed(1)} %
+      </p>
 
       {/* variants */}
       <div className="grid gap-3 w-full">

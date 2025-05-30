@@ -24,6 +24,14 @@ export const resources = {
       'No translation tasks': 'No translation tasks available.',
       Back: 'Back',
       Play: 'Play',
+      Submit: 'Submit',
+      Record: 'Record',
+      'Translate': 'Translate',
+      Score: 'Score',
+      'Authorising...': 'Authorising...',
+      'Auth failed': 'Auth failed',
+      Error: 'Error',
+      'Loading collections...': 'Loading collections...'
     },
   },
   ru: {
@@ -48,6 +56,14 @@ export const resources = {
       'No translation tasks': 'Нет заданий на перевод.',
       Back: 'Назад',
       Play: 'Прослушать',
+      Submit: 'Подтвердить',
+      Record: 'Запись',
+      'Translate': 'Перевести',
+      Score: 'Счет',
+      'Authorising...': 'Авторизация...',
+      'Auth failed': 'Не удалось авторизоваться',
+      Error: 'Ошибка',
+      'Loading collections...': 'Загружаем коллекции'
     },
   },
 };

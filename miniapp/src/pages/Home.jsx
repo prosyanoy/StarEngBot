@@ -1,21 +1,39 @@
-// src/pages/Home.jsx
-import { useState, useMemo } from 'react';
+import {useState, useMemo, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import collections from '@/data/collections';      // array of { id, icon, title, total, wordsToLearn, wordsToRepeat }
 import CollectionCard from '@/components/CollectionCard';
 import SortSheet from '@/components/SortSheet';
+import {fetchCollections, useAuth} from "@/lib/api";
 
 export default function Home() {
-  const { i18n } = useTranslation();
-  const navigate = useNavigate();
+  const { loading: authLoading, isAuthed } = useAuth();
+  const { t, i18n } = useTranslation();
+  const navigate    = useNavigate();
 
-  /* ───────── sorting state ───────── */
-  const [sortBy, setSortBy] = useState('alphabet'); // "alphabet" | "total" | "learnLeft"
+  const [sortBy, setSortBy] = useState('alphabet');
+  const [data, setData]   = useState([]);
+  const [err, setErr]    = useState(null);
+
+  /* ─── fetch once we’re authenticated ───────────────────────────── */
+  useEffect(() => {
+  // console.log('Auth state:', authLoading, isAuthed);
+  if (authLoading || !isAuthed) return;
+
+  fetchCollections()
+    .then((res) => {
+      // console.log('Fetched collections:', res);
+      setData(res);
+      // console.log('🗄️ cols after setCols:', data);
+    })
+    .catch(e => {
+      // console.error('Fetch error:', e);
+      setErr(e);
+    });
+}, [authLoading, isAuthed]);
 
   const sorted = useMemo(() => {
-    const list = [...collections];
+    const list = [...data];
 
     switch (sortBy) {
       case 'total':
@@ -35,12 +53,12 @@ export default function Home() {
           (a.title).localeCompare(b.title, undefined, { sensitivity: 'base' })
         );
     }
-  }, [sortBy]);
+  }, [data, sortBy]);
 
   /* ───────── click handler ───────── */
   const handleAction = (collection, mode) => {
     if (mode === 'repeat') {
-      navigate(`/translate/${collection.id}?mode=repeat`);
+      navigate(`/learnflow/${collection.id}?mode=repeat`);
     } else {
       navigate(`/learn/${collection.id}`);
     }
@@ -57,7 +75,7 @@ export default function Home() {
         <CollectionCard
           key={col.id}
           title={col.title}
-          icon={col.icon}
+          emoji={col.icon}
           learnLeft={col.wordsToLearn}
           repeatLeft={col.wordsToRepeat}
           total={col.total}
