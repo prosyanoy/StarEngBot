@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "homepage": "https://stdio.bot/stareng",
   "scripts": {
     "dev": "vite --open",
     "build": "vite build",
