@@ -1,18 +1,22 @@
-# --- Build Stage ---
+# ─── Stage 1: build the app ───
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# copy lockfile + manifest
+# 1) Copy manifests & install
 COPY package.json package-lock.json ./
+RUN npm ci
 
-# install exact deps
+# 2) Copy source & build
 COPY . .
-RUN npm ci && run build
+RUN npm run build
 
-
-# --- Serve Stage ---
+# ─── Stage 2: serve with nginx ───
 FROM nginx:stable-alpine
+# Your custom nginx.conf if you have one
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
 
+# Copy the build output into nginx’s html dir
+# Vite outputs to /app/dist by default
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 80
