@@ -11,7 +11,7 @@ import axios, { AxiosInstance } from 'axios';
 /* ------------------------------------------------------------------ */
 /* 1. Axios instance + JWT plumbing                                   */
 /* ------------------------------------------------------------------ */
-const API_ROOT = "http://stdio.bot/stareng/api";  // ← change to backend URL
+const API_ROOT = "https://stdio.bot/stareng/api";  // ← change to backend URL
 
 const api: AxiosInstance = axios.create({ baseURL: API_ROOT });
 let jwt: string | null = null;
