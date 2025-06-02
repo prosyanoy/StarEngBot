@@ -1,22 +1,22 @@
-# ─── Stage 1: build the app ───
+# --- Build Stage ---
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# 1) Copy manifests & install
-COPY package.json package-lock.json ./
+# Install dependencies
+COPY package*.json ./
 RUN npm ci
 
-# 2) Copy source & build
+# Copy source & build
 COPY . .
 RUN npm run build
 
-# ─── Stage 2: serve with nginx ───
+# --- Production Stage ---
 FROM nginx:stable-alpine
-# Your custom nginx.conf if you have one
+# Copy built files to nginx’s public folder
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# (Optional) Add a basic nginx config if you need SPA fallback:
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy the build output into nginx’s html dir
-# Vite outputs to /app/dist by default
-COPY --from=builder /app/dist /usr/share/nginx/html
-
 EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
