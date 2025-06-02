@@ -9,5 +9,5 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: '', // important for Telegram Mini Apps
+  base: '/stareng/', // important for Telegram Mini Apps
 });
