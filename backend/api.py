@@ -7,7 +7,13 @@ from backend.routers import authentication, collections, learning, tasks, pronun
 
 
 def build_api() -> FastAPI:
-    app = FastAPI(title="StarEng API", lifespan=lifespan_context)
+    app = FastAPI(
+        title="StarEng API",
+        lifespan=lifespan_context,
+        root_path="/stareng/api",
+        docs_url="/docs",
+        openapi_url="/openapi.json"
+    )
 
     app.include_router(authentication.router)
     app.include_router(collections.router)
