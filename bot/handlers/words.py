@@ -22,6 +22,7 @@ router = Router()
 
 # FSM-состояния для добавления слова
 class AddWordStates(StatesGroup):
+    waiting_for_new_word = State()
     waiting_for_corrected_choice = State()
     waiting_for_translation_choice = State()
     waiting_for_collection_choice = State()
@@ -79,13 +80,10 @@ async def fetch_translations_from_db(
     return Translations(word=word, translations=models)
 
 # ------------ add word -----------------------------------------------
-@router.message(lambda m: m.text and not m.text.startswith("/"))
+@router.message(AddWordStates.waiting_for_new_word, lambda m: m.text and not m.text.startswith("/"))
 async def auto_add_word(message: Message,
                         state: FSMContext,
                         db_session: AsyncSession):
-    # if user is already choosing a translation / collection – ignore
-    if await state.get_state():
-        return
     english_word = message.text.strip()
     await process_english_word(
         english_word,
@@ -256,4 +254,4 @@ async def process_collection_choice(
     await db_session.commit()
 
     await callback.message.answer(**Text("Слово ", Bold(tr.word),  f" добавлено в коллекцию с переводом «{chosen_text}».").as_kwargs())
-    await state.clear()
+    await state.set_state(AddWordStates.waiting_for_new_word)

@@ -2,13 +2,11 @@ import random
 from typing import List
 
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.formatting import as_list, Text, Bold
-from sqlalchemy import select
 
-from bot.models import CEFR, User
+from bot.handlers.words import AddWordStates
 from cefr.lexicon import build_lexicon
 
 LEXICON_DF = build_lexicon()
@@ -20,15 +18,15 @@ router = Router()
 
 # ─────────────────────  FSM  ──────────────────────
 class TestStates(StatesGroup):
-    asking     = State()   # showing a word & options
-    finished   = State()   # waiting for user to pick final level
+    asking     = State()
+    finished   = State()
 
 # structure we’ll save in FSM “data”
 class QuizData:
     def __init__(
         self,
-        queue,                     # required
-        totals=None,               # optional when rebuilding
+        queue,
+        totals=None,
         correct=None,
         curr = 'A'
     ):
@@ -71,7 +69,8 @@ async def launch_quiz(message: Message, state: FSMContext):
 
 # ─────────────────────────  /start  ─────────────────────────
 @router.message(Command("start"))
-async def start_handler(message: Message, db_session):
+async def start_handler(message: Message, state: FSMContext, db_session):
+    await state.set_state(AddWordStates.waiting_for_new_word)
     tg_id = message.from_user.id
 
     result = await db_session.execute(
@@ -256,4 +255,4 @@ async def level_chosen(cb: CallbackQuery, db_session, state: FSMContext):
     await cb.answer(f"Уровень {level_str} сохранен!")
     await cb.message.edit_reply_markup()      # remove keyboard
     await cb.message.answer("Отлично! Начнем учиться с этого уровня.")
-    await state.clear()
+    await state.set_state(AddWordStates.waiting_for_new_word)

@@ -9,6 +9,8 @@ from datetime import datetime
 
 from bot.models import User, Collection, AddedWord, Word, Translation
 from bot.config import MINI_APP_URL
+from bot.handlers.words import AddWordStates
+
 router = Router()
 
 def to_ipa(s):
@@ -102,7 +104,6 @@ async def learn_collection_handler(callback: CallbackQuery):
     col_name = callback.data.split("_")[1]
     await callback.message.answer(f"Открываем коллекцию {col_name}")
 
-# FSM для создания коллекции
 class CreateCollectionStates(StatesGroup):
     waiting_for_collection_name = State()
 
@@ -131,4 +132,4 @@ async def process_collection_name(message: Message, state: FSMContext, db_sessio
     db_session.add(new_collection)
     await db_session.commit()
     await message.answer(f"Новая коллекция '{collection_name}' создана!")
-    await state.clear()
+    await state.set_state(AddWordStates.waiting_for_new_word)
