@@ -1,3 +1,4 @@
+import asyncio
 import math, random
 from typing import List, Literal, Optional
 
@@ -17,6 +18,32 @@ from bot.ai import Sentences, get_context_sentences
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 CEFR_ATTEMPTS = {"A": 3, "B": 2, "C": 1, None: 3}
+
+async def build_task(idx: int, row, cefr) -> ContextTask:
+    """
+    Wrap one OpenAI request.  Runs concurrently thanks to create_task().
+    """
+    res: Sentences = await get_context_sentences(
+        row.word.english_word,
+        row.translation.translation,
+        cefr,
+    )
+    return ContextTask(id=f"t{idx}", en=res.en, ru=res.ru)
+
+
+async def prepare_context_tasks(rows) -> list[ContextTask]:
+    # ① launch every request immediately
+    tasks = [
+        asyncio.create_task(build_task(idx, row))
+        for idx, row in enumerate(rows, start=1)   # t1, t2, …
+    ]
+
+    # ② wait for them all to finish (returns results in the same order)
+    cx_tasks: list[ContextTask] = await asyncio.gather(*tasks)
+
+    # ③ shuffle for random order in the UI
+    random.shuffle(cx_tasks)
+    return cx_tasks
 
 def mix_variants(correct: str, distractors: list[str]) -> tuple[list[str], int]:
     need = 4
@@ -185,11 +212,13 @@ async def translation_tasks(
         t_id += 1
     random.shuffle(pr_tasks)
 
-    cx_tasks: list[ContextTask] = []
-    async for r in rows:
-        res: Sentences = await get_context_sentences(r.word.english_word, r.translation.translation, user.cefr)
-        cx_tasks.append(ContextTask(id=f"t{t_id}", en=res.en, ru=res.ru))
-        t_id += 1
+    tasks = [
+        asyncio.create_task(build_task(idx, row, user.cefr))
+        for idx, row in enumerate(rows, start=t_id)
+    ]
+
+    cx_tasks: list[ContextTask] = await asyncio.gather(*tasks)
+
     random.shuffle(cx_tasks)
 
     tasks = tr_tasks + sp_tasks + pr_tasks + cx_tasks
