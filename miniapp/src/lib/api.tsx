@@ -74,11 +74,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
          // Получаем initData
          const initData = window.Telegram.WebApp.initData;
-
-         // Парсим данные пользователя
+         console.log("initData", initData);
          const startParam = parseInitData(initData);
          // const startParam = "user=7721543005&hash=2425f0eef2a45c5fde5f13a9b29ae27f3fb6cd61c17df0d03ae2f22963df3d9f"
-         signIn(startParam);
+         if (initData) signIn(startParam)
+          else {
+            console.error("initData", 'initData not found');
+            setLoading(false);
+         }
     } else {
       console.error('Telegram Web App is not available');
       setLoading(false);
