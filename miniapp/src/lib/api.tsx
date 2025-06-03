@@ -46,10 +46,27 @@ const AuthCtx = createContext<AuthCtxShape>({
 
 const parseInitData = (initData) => {
      const params = new URLSearchParams(initData);
-     const user = params.get('user');
+     const userParam = params.get('user');
      const hash = params.get('hash');
-     return "user=" + user + "&hash=" + hash;
-};
+
+     if (userParam && hash) {
+         let userId: string | null = null;
+         try {
+             const decodedUserJson = decodeURIComponent(userParam);
+             const userObj = JSON.parse(decodedUserJson);
+             userId = userObj.id?.toString() || null;
+         } catch (e) {
+             console.error('Failed to parse user JSON:', e);
+         }
+
+         if (userId) {
+             console.log('Telegram user ID is', userId);
+             return "user=" + userId + "&hash=" + hash;
+         } else {
+             console.warn('Could not extract user.id from initData.');
+         }
+     }
+}
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [jwtState, setJwtState] = useState<string | null>(null);
@@ -75,6 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
          // Получаем initData
          const initData = window.Telegram.WebApp.initData;
          console.log("initData", initData);
+
          if (initData) {
              const startParam = parseInitData(initData);
              // const startParam = "user=7721543005&hash=2425f0eef2a45c5fde5f13a9b29ae27f3fb6cd61c17df0d03ae2f22963df3d9f"
