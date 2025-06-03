@@ -16,7 +16,7 @@ export default function Pronunciation({ tasks, onFinish }) {
   const [fb, setFb]      = useState(null);   // banner
   const mediaRef = useRef(null);
 
-  const task = decorated[idx];
+  const task = decorated[idx] ?? {};
 
   const startRec = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio:true });

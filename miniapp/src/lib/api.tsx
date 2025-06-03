@@ -11,7 +11,8 @@ import axios, { AxiosInstance } from 'axios';
 /* ------------------------------------------------------------------ */
 /* 1. Axios instance + JWT plumbing                                   */
 /* ------------------------------------------------------------------ */
-const API_ROOT = "https://stdio.bot/stareng/api";  // ← change to backend URL
+const API_ROOT = "https://stdio.bot/stareng/api";
+// const API_ROOT = "http://localhost:8000";
 
 const api: AxiosInstance = axios.create({ baseURL: API_ROOT });
 let jwt: string | null = null;
@@ -49,7 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (initData: string) => {
     try {
-      const res = await api.post<{ access_token: string }>('/auth', { initData });
+      const res = await api.post<{ access_token: string }>('/auth/', { initData });
       setJwtState(res.data.access_token);
       setJWT(res.data.access_token);
     } finally {
