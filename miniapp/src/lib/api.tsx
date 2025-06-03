@@ -45,8 +45,8 @@ const AuthCtx = createContext<AuthCtxShape>({
 });
 
 const parseInitData = (initData) => {
-     const user = initData.user.id;
-     const hash = initData.hash;
+     const user = initData.user.id.toString();
+     const hash = initData.hash.toString();
      return "user=" + user + "&hash=" + hash;
 };
 
