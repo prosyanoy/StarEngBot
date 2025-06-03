@@ -45,8 +45,9 @@ const AuthCtx = createContext<AuthCtxShape>({
 });
 
 const parseInitData = (initData) => {
-     const user = initData.user.id.toString();
-     const hash = initData.hash.toString();
+     const params = new URLSearchParams(initData);
+     const user = params.get('user');
+     const hash = params.get('hash');
      return "user=" + user + "&hash=" + hash;
 };
 
