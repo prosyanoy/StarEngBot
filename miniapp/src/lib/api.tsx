@@ -66,14 +66,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
          window.Telegram.WebApp.ready();
 
          // Получаем initData
-         const initData = window.Telegram.WebApp.initDataUnsafe;
+         const initData = window.Telegram.WebApp.initData;
          // console.log("initData", initData);
 
          if (initData) {
-             const startParam = "user=" + initData.user.id.toString() + "&hash=" + initData.hash;
+             // const startParam = "user=" + initData.user.id.toString() + "&hash=" + initData.hash;
              // const startParam = "user=7721543005&hash=2425f0eef2a45c5fde5f13a9b29ae27f3fb6cd61c17df0d03ae2f22963df3d9f"
-             console.log("initData", startParam);
-             signIn(startParam)
+             console.log("initData", initData);
+             signIn(initData)
          } else {
             console.error("initData", 'initData not found');
             setLoading(false);
