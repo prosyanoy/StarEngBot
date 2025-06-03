@@ -1,22 +1,46 @@
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 
-export default function CollectionCard({ collection, onLearn }) {
-  const { i18n, t } = useTranslation();
+export default function CollectionCard({
+  title,
+  emoji,
+  learnLeft,
+  repeatLeft,
+  total,
+  onAction,     // receives "learn" | "repeat"
+}) {
+  const { t } = useTranslation();
+  const isRepeat = repeatLeft > 0;
+
+  const renderEmoji = () => {
+    if (!emoji) return '📚'; // default book emoji
+    const match = emoji.match(/^&#(\d+);$/);
+    if (match) {
+      return String.fromCodePoint(Number(match[1]));
+    }
+    return emoji;
+  };
 
   return (
-    <div className="flex items-center justify-between bg-slate-50 rounded-card p-3 shadow mb-3">
-      <div className="flex items-center gap-3">
-        <img src={collection.icon} alt={collection.title} className="w-12 h-12 rounded-lg" />
-        <div>
-          <h3 className="font-semibold text-lg leading-tight">{collection.title}</h3>
-          <p className="text-sm text-gray-500">
-            {collection.wordsToLearn}/{collection.total} {t('toLearn')}
-          </p>
-        </div>
+    <div className="flex items-center gap-4 py-3">
+      <div className="w-16 h-16 flex items-center justify-center text-4xl">
+        {renderEmoji()}
       </div>
-      <Button onClick={() => onLearn(collection)} className="px-4 py-2">
-        {t('learn')}
+
+      <div className="flex-1">
+        <h3 className="text-lg font-medium">{title}</h3>
+        <p className="text-gray-500 text-sm">
+          {isRepeat
+            ? `${repeatLeft}/${total} ${t('to be repeated')}`
+            : `${learnLeft}/${total} ${t('to be learned')}`}
+        </p>
+      </div>
+
+      <Button
+        onClick={() => onAction(isRepeat ? 'repeat' : 'learn')}
+        disabled={!isRepeat && learnLeft === 0}
+      >
+        {isRepeat ? t('Repeat') : t('Learn')}
       </Button>
     </div>
   );

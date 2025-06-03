@@ -75,7 +75,7 @@ export default function Home() {
         <CollectionCard
           key={col.id}
           title={col.title}
-          emoji={col.icon}
+          emoji={col.icon ?? NaN}
           learnLeft={col.wordsToLearn}
           repeatLeft={col.wordsToRepeat}
           total={col.total}
