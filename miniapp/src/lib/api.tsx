@@ -44,6 +44,13 @@ const AuthCtx = createContext<AuthCtxShape>({
   signIn: async () => {},
 });
 
+const parseInitData = (initData) => {
+     const params = new URLSearchParams(initData);
+     const user = JSON.parse(params.get('user'));
+     const hash = params.get('hash');
+     return "user=" + user + "&hash=" + hash;
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [jwtState, setJwtState] = useState<string | null>(null);
   const [loading, setLoading]   = useState(true);
@@ -60,10 +67,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   /* automatic login on mount */
   useEffect(() => {
-    const initData = (window as any).Telegram?.WebApp?.initData;
-    // const initData = "user=7721543005&hash=2425f0eef2a45c5fde5f13a9b29ae27f3fb6cd61c17df0d03ae2f22963df3d9f"
-    if (initData) signIn(initData);
-    else setLoading(false); // running outside Telegram
+    //const initData = (window as any).Telegram?.WebApp?.initData;
+    if ((window as any).Telegram && (window as any).Telegram.WebApp) {
+         // Инициализируем Telegram Web App
+         (window as any).Telegram.WebApp.ready();
+
+         // Получаем initData
+         const initData = (window as any).Telegram.WebApp.initData;
+
+         // Парсим данные пользователя
+         const startParam = parseInitData(initData);
+         // const startParam = "user=7721543005&hash=2425f0eef2a45c5fde5f13a9b29ae27f3fb6cd61c17df0d03ae2f22963df3d9f"
+         signIn(startParam);
+    } else {
+      console.error('Telegram Web App is not available');
+      setLoading(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
