@@ -68,12 +68,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   /* automatic login on mount */
   useEffect(() => {
     //const initData = (window as any).Telegram?.WebApp?.initData;
-    if ((window as any).Telegram && (window as any).Telegram.WebApp) {
+    if (window.Telegram && window.Telegram.WebApp) {
          // Инициализируем Telegram Web App
-         (window as any).Telegram.WebApp.ready();
+         window.Telegram.WebApp.ready();
 
          // Получаем initData
-         const initData = (window as any).Telegram.WebApp.initData;
+         const initData = window.Telegram.WebApp.initData;
 
          // Парсим данные пользователя
          const startParam = parseInitData(initData);
