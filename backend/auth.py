@@ -1,6 +1,7 @@
 import hmac, hashlib, time
 import json
-from urllib.parse import parse_qs
+from operator import itemgetter
+from urllib.parse import parse_qs, unquote, parse_qsl
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -10,29 +11,32 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from backend.config import settings
 from backend.deps import get_session
+from bot.config import BOT_TOKEN
 from bot.models import User
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 bearer = HTTPBearer(auto_error=False)
 
-def verify_init_data(init_data: str) -> Optional[int]:
-    """
-    Returns the Telegram user_id if the hash checks out; otherwise None.
-    """
-    parsed_data = parse_qs(init_data)
+
+def _get_secret_key() -> bytes:
+    return hmac.new(key=b"WebAppData", msg=BOT_TOKEN.encode(), digestmod=hashlib.sha256).digest()
+
+
+def verify_init_data(init_data: str):
+    try:
+        parsed_data = dict(parse_qsl(init_data, strict_parsing=True))
+    except ValueError as err:
+        raise Exception("invalid init data") from err
     if "hash" not in parsed_data:
-        return False
-
-    hash_from_data = parsed_data["hash"][0]
-    del parsed_data["hash"]
-
-    secret_key = hmac.new(key=b"WebAppData", msg=bot_token.encode(), digestmod=hashlib.sha256).digest()
-
-    data_check_string = "\n".join(f"{k}={v[0]}" for k, v in sorted(parsed_data.items()))
-    calculated_hash = hmac.new(key=secret_key, msg=data_check_string.encode(), digestmod=hashlib.sha256).hexdigest()
-
-    return calculated_hash == hash_from_data
+        raise Exception("missing hash")
+    hash_ = parsed_data.pop("hash")
+    data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed_data.items(), key=itemgetter(0)))
+    calculated_hash = hmac.new(
+        key=_get_secret_key(), msg=data_check_string.encode(), digestmod=hashlib.sha256).hexdigest()
+    if calculated_hash != hash_:
+        raise Exception("invalid hash")
+    return int(json.loads(parsed_data["user"])["id"])
 
 def create_jwt(telegram_id: int):
     now = datetime.now(tz=timezone.utc)
