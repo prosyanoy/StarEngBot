@@ -186,7 +186,7 @@ async def translation_tasks(
     random.shuffle(pr_tasks)
 
     cx_tasks: list[ContextTask] = []
-    for r in rows:
+    async for r in rows:
         res: Sentences = await get_context_sentences(r.word.english_word, r.translation.translation, user.cefr)
         cx_tasks.append(ContextTask(id=f"t{t_id}", en=res.en, ru=res.ru))
         t_id += 1
