@@ -60,8 +60,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   /* automatic login on mount */
   useEffect(() => {
-    // const initData = (window as any).Telegram?.WebApp?.initData;
-    const initData = "user=7721543005&hash=2425f0eef2a45c5fde5f13a9b29ae27f3fb6cd61c17df0d03ae2f22963df3d9f"
+    const initData = (window as any).Telegram?.WebApp?.initData;
+    // const initData = "user=7721543005&hash=2425f0eef2a45c5fde5f13a9b29ae27f3fb6cd61c17df0d03ae2f22963df3d9f"
     if (initData) signIn(initData);
     else setLoading(false); // running outside Telegram
     // eslint-disable-next-line react-hooks/exhaustive-deps
