@@ -45,9 +45,8 @@ const AuthCtx = createContext<AuthCtxShape>({
 });
 
 const parseInitData = (initData) => {
-     const params = new URLSearchParams(initData);
-     const user = JSON.parse(params.get('user'));
-     const hash = params.get('hash');
+     const user = initData.user.id;
+     const hash = initData.hash;
      return "user=" + user + "&hash=" + hash;
 };
 
@@ -75,10 +74,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
          // Получаем initData
          const initData = window.Telegram.WebApp.initData;
          console.log("initData", initData);
-         const startParam = parseInitData(initData);
-         // const startParam = "user=7721543005&hash=2425f0eef2a45c5fde5f13a9b29ae27f3fb6cd61c17df0d03ae2f22963df3d9f"
-         if (initData) signIn(startParam)
-          else {
+         if (initData) {
+             const startParam = parseInitData(initData);
+             // const startParam = "user=7721543005&hash=2425f0eef2a45c5fde5f13a9b29ae27f3fb6cd61c17df0d03ae2f22963df3d9f"
+             signIn(startParam)
+         } else {
             console.error("initData", 'initData not found');
             setLoading(false);
          }
