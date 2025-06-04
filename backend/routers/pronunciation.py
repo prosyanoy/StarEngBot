@@ -22,7 +22,7 @@ def evaluate_pronunciation(
     features_npz_path: Union[str, Path] = FEATURES_NPZ,
     strategy: str = "min",  # "min" | "mean"
 ) -> float:
-    """Возвращает (score, all_costs).
+    """Возвращает score.
 
     * ``word`` – английское слово (регистр игнорируется)
     * ``webm_path`` – путь к записи учащегося (.webm, .wav, …)
@@ -30,10 +30,9 @@ def evaluate_pronunciation(
     """
     word = word.lower()
     data = np.load(features_npz_path, allow_pickle=True)
-    # собираем ссылки на эталонные матрицы
     ref_keys = [k for k in data.files if k.split('_')[0] == word]
     if not ref_keys:
-        raise KeyError(f"В архиве {features_npz_path} нет эталонов для слова '{word}'.")
+        raise KeyError(f"В архиве {features_npz_path} нет эталонов для слова `{word}`.")
     ref_features = [data[k] for k in ref_keys]
 
     test_feat = analyse(webm_path)
@@ -59,8 +58,8 @@ router = APIRouter(prefix="/pronunciation", tags=["pronunciation"])
 
 @router.post("/{task_id}", response_model=PronResp)
 async def check_pronunciation(
-    task_id: int,                            # you might not need it now, keep for future logging
-    word: str = Form(...),                  # word that must be pronounced
+    task_id: str,
+    word: str = Form(...),
     audio: UploadFile = File(..., description="webm audio recorded in browser"),
     db: AsyncSession = Depends(get_session),
     user: User = Depends(get_current_user),

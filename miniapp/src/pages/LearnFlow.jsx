@@ -18,6 +18,13 @@ export default function LearnFlow() {
   const mode = searchParams.get('mode');
   const navigate        = useNavigate();
 
+  const [scores, setScores] = useState({
+    translation: 0,
+    spelling: 0,
+    pronunciation: 0,
+    context: 0,
+  });
+
   const wordIds = useMemo(
     () =>
       Array.isArray(state?.wordIds)
@@ -67,6 +74,14 @@ export default function LearnFlow() {
   const contextTasks       = tasks.filter(t => t.kind === 'context');
   const matchingTasks      = tasks.filter(t => t.kind === 'matching');
 
+  const words = useMemo(() => {
+    const set = new Set();
+    spellingTasks.forEach(t => set.add(t.en));
+    pronunciationTasks.forEach(t => set.add(t.en));
+    contextTasks.forEach(t => set.add(t.en));
+    return Array.from(set);
+  }, [spellingTasks, pronunciationTasks, contextTasks]);
+
   // stage index:
   // 0 - translation
   // 1 - spelling
@@ -88,9 +103,20 @@ export default function LearnFlow() {
     } else if (stage === 3 && contextTasks.length === 0) {
       setStage(4);
     } else if (stage === 4 && matchingTasks.length === 0) {
-      navigate(`/results/${id}`, { state: { scorePercent: 0 } });
+      const breakdown = {
+        translation: scores.translation,
+        spellingPron: scores.spelling + scores.pronunciation,
+        context: scores.context,
+        matching: 0,
+      };
+      const scorePercent =
+        breakdown.translation +
+        breakdown.spellingPron +
+        breakdown.context +
+        breakdown.matching;
+      navigate(`/results/${id}`, { state: { scorePercent, breakdown, words } });
     }
-  }, [stage, loading, translationTasks.length, spellingTasks.length, pronunciationTasks.length, contextTasks.length, matchingTasks.length, navigate, id]);
+  }, [stage, loading, translationTasks.length, spellingTasks.length, pronunciationTasks.length, contextTasks.length, matchingTasks.length, navigate, id, scores, words]);
 
   if (authLoading)        return <p>{t('Authorising...')}</p>;
   if (!isAuthed)          return <p>{t('Auth failed')}</p>;
@@ -100,7 +126,10 @@ export default function LearnFlow() {
     return (
       <Translation
         tasks={translationTasks}
-        onFinish={next}
+        onFinish={(scr) => {
+          setScores(s => ({ ...s, translation: scr }));
+          next();
+        }}
       />
     );
   }
@@ -109,7 +138,13 @@ export default function LearnFlow() {
     return (
       <Spelling
         tasks={spellingTasks}
-        onFinish={next}
+        onFinish={(scr) => {
+          const norm = spellingTasks.length
+            ? (scr / (spellingTasks.length * 3)) * 15
+            : 0;
+          setScores(s => ({ ...s, spelling: norm }));
+          next();
+        }}
       />
     );
   }
@@ -118,7 +153,13 @@ export default function LearnFlow() {
     return (
       <Pronunciation
         tasks={pronunciationTasks}
-        onFinish={next}
+        onFinish={(scr) => {
+          const norm = pronunciationTasks.length
+            ? (scr / (pronunciationTasks.length * 3)) * 15
+            : 0;
+          setScores(s => ({ ...s, pronunciation: norm }));
+          next();
+        }}
       />
     );
   }
@@ -127,7 +168,11 @@ export default function LearnFlow() {
     return (
       <Context
         tasks={contextTasks}
-        onFinish={next}
+        onFinish={() => {
+          const val = contextTasks.length ? 30 : 0;
+          setScores(s => ({ ...s, context: val }));
+          next();
+        }}
       />
     );
   }
@@ -136,9 +181,20 @@ export default function LearnFlow() {
     return (
       <Matching
         tasks={matchingTasks}
-        onFinish={(score) =>
-          navigate(`/results/${id}`, { state: { scorePercent: score ?? 0 } })
-        }
+        onFinish={() => {
+          const breakdown = {
+            translation: scores.translation,
+            spellingPron: scores.spelling + scores.pronunciation,
+            context: scores.context,
+            matching: 10,
+          };
+          const scorePercent =
+            breakdown.translation +
+            breakdown.spellingPron +
+            breakdown.context +
+            breakdown.matching;
+          navigate(`/results/${id}`, { state: { scorePercent, breakdown, words } });
+        }}
       />
     );
   }

@@ -17,7 +17,6 @@ export default function Translation({tasks, onFinish}) {
   const [reveal, setReveal]     = useState(false);       // show correct = true
   const [wrongIdx, setWrong]    = useState(null);        // index flashing red
   const [disabled, setDis]      = useState([]);          // wrong options so far
-  const [progress, setProg]     = useState(0);
 
   // ─── ensure attempts sync with the current task ────────────────────
   useEffect(() => {
@@ -60,10 +59,9 @@ export default function Translation({tasks, onFinish}) {
   /* ───── move to next task ───── */
   const nextTask = () => {
     const next = idx + 1;
-    if (next >= tasks.length) return onFinish();
+    if (next >= tasks.length) return onFinish(score);
 
     setIdx(next);
-    setProg(p => p + 3);
     setAtt(tasks[next].attempts);
     setReveal(false);
     setWrong(null);
@@ -115,7 +113,7 @@ export default function Translation({tasks, onFinish}) {
 
       <button className="self-end text-2xl" onClick={()=>nav('/')}>×</button>
 
-      <ProgressBar value={progress} className="w-full mb-4" />
+      <ProgressBar value={(idx / tasks.length) * 100} className="w-full mb-4" />
       <h2 className="text-sm text-center mb-6 font-medium">
         {t('Choose correct translation')}
       </h2>

@@ -26,9 +26,12 @@ export default function Pronunciation({ tasks, onFinish }) {
     rec.ondataavailable = e => chunks.push(e.data);
     rec.onstop = async () => {
       const blob = new Blob(chunks, { type: 'audio/webm' });
-      // ← NEW: call axios wrapper
-      const { ok, points } = await postPronunciation(task.id, task.en, blob);
-      nextTask(ok ? points : 0);
+      try {
+        const { ok, points } = await postPronunciation(task.id, task.en, blob);
+        nextTask(ok ? points : 0);
+      } catch (e) {
+        nextTask(0);
+      }
     };
 
     rec.start();
