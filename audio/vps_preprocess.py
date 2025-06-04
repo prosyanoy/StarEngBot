@@ -8,15 +8,16 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Optional
 
+from sqlalchemy.ext.asyncio import async_session, create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+
 project_root = Path(__file__).parent.parent.resolve()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from sqlalchemy import select
-from backend.deps import get_session
 
 from bot.models import Word
-from db import init_db
 
 # ────────────────────────────────────────────────────
 
@@ -41,11 +42,11 @@ def _collect_audio_counts() -> Dict[str, int]:
     return counts
 
 async def update_db_with_counts() -> None:
-    await init_db()
-    # собираем данные в пуле потоков (чтение файлов – I/O)
+    engine = create_async_engine(DATABASE_URL, echo=False, future=True)
+    async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
     counts = await asyncio.to_thread(_collect_audio_counts)
 
-    async with get_session() as session:
+    async with async_session() as session:
         for word, max_count in counts.items():
             stmt = select(Word).where(Word.english_word == word)
             obj: Optional[Word] = await session.scalar(stmt)
