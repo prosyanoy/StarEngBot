@@ -46,7 +46,7 @@ export default function Results() {
 
       <button
         onClick={() => {
-          navigate('/stareng');
+          navigate('//');
           window.location.reload();
         }}
         className="bg-blue-600 text-white px-6 py-3 rounded"

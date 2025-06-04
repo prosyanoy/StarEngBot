@@ -35,7 +35,7 @@ export default function Learn() {
     setAnswered(totalAnswered);
 
     if (next >= queue.length) {
-      const totalLearns = learnClicks + (type==='learn'?1:0);
+      const totalLearns = learnClicks + (type==='learn' ? 1 : 0);
       if (totalLearns === 0) nav(`/results/${collectionId}`);
       else nav(`/learnflow/${collectionId}`, {
         state: { wordIds: learnIDsRef.current }
