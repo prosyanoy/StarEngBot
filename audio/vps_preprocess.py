@@ -22,7 +22,7 @@ from bot.config import DATABASE_URL
 # ────────────────────────────────────────────────────
 
 BASE_DIR   = Path(__file__).parent.parent.parent.parent.parent.resolve()
-MODELS_DIR = BASE_DIR / "src" / "models"
+MODELS_DIR = BASE_DIR / "srv" / "models"
 FEATURES_NPZ = BASE_DIR / "features.npz"  # pre‑computed features
 
 _filename_re = re.compile(r"^([a-z][a-z0-9]*?)(\d+)$", re.ASCII)
