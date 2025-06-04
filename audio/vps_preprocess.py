@@ -20,8 +20,8 @@ from db import init_db
 
 # ────────────────────────────────────────────────────
 
-BASE_DIR   = Path(__file__).parent
-MODELS_DIR = "srv/audio/models"
+BASE_DIR   = Path(__file__).parent.parent.parent.parent.parent.resolve()
+MODELS_DIR = BASE_DIR / "src" / "models"
 FEATURES_NPZ = BASE_DIR / "features.npz"  # pre‑computed features
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
