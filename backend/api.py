@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from db import lifespan_context
 
-from backend.routers import authentication, collections, learning, tasks, pronunciation
+from backend.routers import authentication, collections, learning, tasks, pronunciation, spaced_repeat
 
 
 def build_api() -> FastAPI:
@@ -21,6 +21,7 @@ def build_api() -> FastAPI:
     app.include_router(learning.repeat_router)
     app.include_router(tasks.router)
     app.include_router(pronunciation.router)
+    app.include_router(spaced_repeat.router)
 
     # CORS – adjust domains in prod
     app.add_middleware(

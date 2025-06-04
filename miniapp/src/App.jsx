@@ -9,7 +9,7 @@ import Translation from '@/pages/Translation';
 import SpellingStage from '@/pages/Spelling';
 import PronounceStage from '@/pages/Pronunciation';
 import Results from '@/pages/Results.jsx';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
 export default function App() {
   const [lang, setLang] = useState('en');

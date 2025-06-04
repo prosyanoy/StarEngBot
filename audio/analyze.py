@@ -1,8 +1,6 @@
+import audioread
 import librosa
 import webrtcvad
-import numpy as np
-
-import librosa
 import numpy as np
 import subprocess
 import io
@@ -15,8 +13,8 @@ def load_and_trim(file_path, sr=16000, top_db=20):
     * если soundfile не умеет Ogg, используем ffmpeg → stdout
     """
     try:
-        y, sr_out = librosa.load(str(file_path), sr=sr)   # str(...) = фикc encode-багa
-    except (RuntimeError, sf.LibsndfileError):
+        y, sr_out = librosa.load(str(file_path), sr=sr)
+    except (RuntimeError, sf.LibsndfileError, audioread.NoBackendError):
         # ¬ fallback через ffmpeg
         cmd = [
             "ffmpeg", "-v", "quiet", "-i", str(file_path),

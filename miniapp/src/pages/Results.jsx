@@ -1,6 +1,8 @@
 // src/pages/Results.jsx
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
+import { postSpacedRepeat } from '@/lib/api';
 
 export default function Results() {
   const { id }   = useParams();
@@ -11,6 +13,12 @@ export default function Results() {
   const pct = state?.scorePercent ?? 0;
   const breakdown = state?.breakdown ?? {};
   const words = state?.words ?? [];
+
+  useEffect(() => {
+    if (!words.length) return;
+    const results = words.map((w) => ({ word: w, score: pct }));
+    postSpacedRepeat(id, results).catch(() => {});
+  }, [words, pct, id]);
 
   return (
     <div className="p-6 text-center">
