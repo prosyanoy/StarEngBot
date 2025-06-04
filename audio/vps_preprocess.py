@@ -21,9 +21,8 @@ from bot.models import Word
 from bot.config import DATABASE_URL
 # ────────────────────────────────────────────────────
 
-BASE_DIR   = Path(__file__).parent.parent.parent.parent.parent.resolve()
-MODELS_DIR = BASE_DIR / "srv" / "audio"
-FEATURES_NPZ = BASE_DIR / "features.npz"  # pre‑computed features
+MODELS_DIR = Path("/srv/audio")
+FEATURES_NPZ = Path("/home/ilia/StarEngBot/audio/features.npz")
 
 _filename_re = re.compile(r"^([a-z][a-z0-9]*?)(\d+)$", re.ASCII)
 
