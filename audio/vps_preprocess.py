@@ -18,16 +18,12 @@ if str(project_root) not in sys.path:
 from sqlalchemy import select
 
 from bot.models import Word
-
+from bot.config import DATABASE_URL
 # ────────────────────────────────────────────────────
 
 BASE_DIR   = Path(__file__).parent.parent.parent.parent.parent.resolve()
 MODELS_DIR = BASE_DIR / "src" / "models"
 FEATURES_NPZ = BASE_DIR / "features.npz"  # pre‑computed features
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://user:pass@localhost:5432/english",
-)
 
 _filename_re = re.compile(r"^([a-z][a-z0-9]*?)(\d+)$", re.ASCII)
 
