@@ -28,6 +28,8 @@ async def build_task(idx: int, row, cefr) -> ContextTask:
         row.translation.translation,
         cefr,
     )
+    if cefr is None:
+        cefr = "A"
     return ContextTask(id=f"t{idx}", en=res.en, ru=res.ru, level=cefr)
 
 def mix_variants(correct: str, distractors: list[str]) -> tuple[list[str], int]:
