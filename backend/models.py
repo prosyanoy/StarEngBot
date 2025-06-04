@@ -61,26 +61,28 @@ class Pair(BaseModel):
     en: str
     ru: str
 
-
-class MatchingTask(Task):
-    kind: Literal["matching"] = "matching"
-
-    pairs: List[Pair]
-
-
 class ContextTask(Task):
     kind: Literal["context"] = "context"
+    level: Literal["A", "B", "C"]
 
     en: str
     ru: str
+
+
+class MatchingTask(Task):
+    kind: Literal["matching"] = "matching"
+    mistakes: int
+
+    pairs: List[Pair]
+
 
 # ───────── Discriminated-union list ─────────
 TaskUnion = Union[
     TranslationTask,
     PronunciationTask,
     SpellingTask,
+    ContextTask,
     MatchingTask,
-    ContextTask
 ]
 
 TasksResponse = List[TaskUnion]

@@ -12,6 +12,7 @@ export const resources = {
       'Number of words to learn': 'Number of words to learn',
       'All words in this collection are learned!':
         'All words in this collection are learned!',
+      Result: 'Result',
       Results: 'Results',
       'No cards left': 'No cards left',
       'Choose correct translation': 'Choose correct translation',
@@ -44,6 +45,7 @@ export const resources = {
       'Number of words to learn': 'По количеству слов к изучению',
       'All words in this collection are learned!':
         'Все слова в этой коллекции выучены!',
+      Result: 'Результат',
       Results: 'Результаты',
       'No cards left': 'Слова закончились',
       'Choose correct translation': 'Выберите правильный перевод',

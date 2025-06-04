@@ -28,22 +28,7 @@ async def build_task(idx: int, row, cefr) -> ContextTask:
         row.translation.translation,
         cefr,
     )
-    return ContextTask(id=f"t{idx}", en=res.en, ru=res.ru)
-
-
-async def prepare_context_tasks(rows) -> list[ContextTask]:
-    # ① launch every request immediately
-    tasks = [
-        asyncio.create_task(build_task(idx, row))
-        for idx, row in enumerate(rows, start=1)   # t1, t2, …
-    ]
-
-    # ② wait for them all to finish (returns results in the same order)
-    cx_tasks: list[ContextTask] = await asyncio.gather(*tasks)
-
-    # ③ shuffle for random order in the UI
-    random.shuffle(cx_tasks)
-    return cx_tasks
+    return ContextTask(id=f"t{idx}", en=res.en, ru=res.ru, level=cefr)
 
 def mix_variants(correct: str, distractors: list[str]) -> tuple[list[str], int]:
     need = 4
@@ -212,21 +197,28 @@ async def translation_tasks(
         t_id += 1
     random.shuffle(pr_tasks)
 
-    tasks = [
+    created_tasks = [
         asyncio.create_task(build_task(idx, row, user.cefr))
         for idx, row in enumerate(rows, start=t_id)
     ]
 
-    cx_tasks: list[ContextTask] = await asyncio.gather(*tasks)
+    t_id += len(rows)
+
+    cx_tasks: list[ContextTask] = await asyncio.gather(*created_tasks)
 
     random.shuffle(cx_tasks)
 
     tasks = tr_tasks + sp_tasks + pr_tasks + cx_tasks
 
     # 4) ── MatchingTask
+    mistakes = 2
+    if user.cefr == "B":
+        mistakes = 1
+    elif user.cefr == "C":
+        mistakes = 0
+
     pairs = [Pair(en=r.word.english_word, ru=r.translation.translation) for r in rows]
-    tasks.append(MatchingTask(id=f"t{t_id}", pairs=pairs))
+    tasks.append(MatchingTask(id=f"t{t_id}", pairs=pairs, mistakes=mistakes))
     t_id += 1
 
-    print(tasks)
     return tasks
