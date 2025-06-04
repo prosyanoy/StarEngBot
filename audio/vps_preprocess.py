@@ -7,12 +7,11 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Optional
 
-from bot.models import Word
-
 project_root = Path(__file__).parent.parent.resolve()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+from bot.models import Word
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
