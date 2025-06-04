@@ -67,11 +67,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
          // Получаем initData
          const initData = window.Telegram.WebApp.initData;
+         // const initData = "user=%7B%22id%22%3A334089475%2C%22first_name%22%3A%22%D0%98%D0%BB%D1%8C%D1%8F%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22prosyanoy%22%2C%22language_code%22%3A%22en%22%2C%22is_premium%22%3Atrue%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2F1Mdp9HYM70uySxrLRRBt_q48YPbcvraZhaQu-vb-sH8.svg%22%7D&chat_instance=7526889782112480440&chat_type=private&auth_date=1748969173&signature=VSdIrZbPCWSjUTYUIaFBXaBuxmkwyGyMP3LomArYhvTu7bh-XCa9L01WWeR_4YS-s3OHAptgOGjks9CRuH8VDw&hash=a99a3b79f24194372526e40e64a158bbba20d64ffac5b3103392db3285d5ca2d"
          // console.log("initData", initData);
 
          if (initData) {
-             // const startParam = "user=" + initData.user.id.toString() + "&hash=" + initData.hash;
-             // const startParam = "user=7721543005&hash=2425f0eef2a45c5fde5f13a9b29ae27f3fb6cd61c17df0d03ae2f22963df3d9f"
              console.log("initData", initData);
              signIn(initData)
          } else {
@@ -193,8 +192,19 @@ export const postPronunciation = async (
 
   const { data } = await api.post<PronunciationResponse>(
     `/pronunciation/${taskId}`,
-    form,
-    { headers: { 'Content-Type': 'multipart/form-data' } }
+    form
   );
   return data;
+};
+
+export interface RepeatPayload {
+  word: string;
+  score: number;
+}
+
+export const postSpacedRepeat = async (
+  collectionId: string | number,
+  results: RepeatPayload[]
+): Promise<void> => {
+  await api.post(`/spaced_repeat/${collectionId}`, results);
 };
