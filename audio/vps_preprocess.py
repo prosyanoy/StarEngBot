@@ -16,7 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-MODELS_DIR = Path("/srv/audio")
+MODELS_DIR = Path("/srv/audio/models")
 
 _filename_re = re.compile(r"^([A-Za-z][A-Za-z0-9]*?)(\d+)$")
 
