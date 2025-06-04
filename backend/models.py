@@ -1,13 +1,6 @@
 from typing import List, Literal, Union, Optional
 from pydantic import BaseModel, Field
 
-class TokenData(BaseModel):
-    telegram_id: int
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
 class CollectionResponse(BaseModel):
     id: int
     title: str
@@ -76,7 +69,7 @@ class MatchingTask(Task):
 
 
 class ContextTask(Task):
-    kind: Literal["matching"] = "context"
+    kind: Literal["context"] = "context"
 
     en: str
     ru: str
