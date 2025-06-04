@@ -41,12 +41,13 @@ export default function Pronunciation({ tasks, onFinish }) {
   };
 
   const nextTask = (points) => {
-    setScore(s => s + points);
+    const newScore = score + points;
+    setScore(newScore);
     setFb(points ? 'correct' : 'wrong');
     setTimeout(() => {
       setFb(null);
-      if (idx + 1 === decorated.length) onFinish(score + points);
-      else setIdx(i => i + 1);
+      if (idx + 1 === decorated.length) onFinish(newScore);
+      else setIdx((i) => i + 1);
     }, 1000);
   };
 

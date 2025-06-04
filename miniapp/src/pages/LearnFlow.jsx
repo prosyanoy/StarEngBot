@@ -2,6 +2,8 @@ import {useEffect, useMemo, useState} from 'react';
 import Translation     from './Translation';
 import Spelling        from './Spelling';
 import Pronunciation   from './Pronunciation';
+import Context         from './Context';
+import Matching        from './Matching';
 import {useLocation, useNavigate, useParams, useSearchParams} from 'react-router-dom';
 import {fetchRepeat, fetchTasks, useAuth} from "@/lib/api";
 import {t} from "i18next";
@@ -59,13 +61,36 @@ export default function LearnFlow() {
   }, [id, mode, wordIds]); // now wordIds is memoized, so this won't loop
 
   // split once
-  const translationTasks  = tasks.filter(t => t.kind === 'translation');
-  const spellingTasks     = tasks.filter(t => t.kind === 'spelling');
-  const pronunciationTasks= tasks.filter(t => t.kind === 'pronunciation');
+  const translationTasks   = tasks.filter(t => t.kind === 'translation');
+  const spellingTasks      = tasks.filter(t => t.kind === 'spelling');
+  const pronunciationTasks = tasks.filter(t => t.kind === 'pronunciation');
+  const contextTasks       = tasks.filter(t => t.kind === 'context');
+  const matchingTasks      = tasks.filter(t => t.kind === 'matching');
 
-  // stage index: 0-trans, 1-spell, 2-pronounce, 3-results
+  // stage index:
+  // 0 - translation
+  // 1 - spelling
+  // 2 - pronunciation
+  // 3 - context
+  // 4 - matching
   const [stage, setStage] = useState(0);
   const next = () => setStage(s => s + 1);
+
+  // Skip empty stages
+  useEffect(() => {
+    if (loading) return;
+    if (stage === 0 && translationTasks.length === 0) {
+      setStage(1);
+    } else if (stage === 1 && spellingTasks.length === 0) {
+      setStage(2);
+    } else if (stage === 2 && pronunciationTasks.length === 0) {
+      setStage(3);
+    } else if (stage === 3 && contextTasks.length === 0) {
+      setStage(4);
+    } else if (stage === 4 && matchingTasks.length === 0) {
+      navigate(`/results/${id}`, { state: { scorePercent: 0 } });
+    }
+  }, [stage, loading, translationTasks.length, spellingTasks.length, pronunciationTasks.length, contextTasks.length, matchingTasks.length, navigate, id]);
 
   if (authLoading)        return <p>{t('Authorising...')}</p>;
   if (!isAuthed)          return <p>{t('Auth failed')}</p>;
@@ -93,8 +118,26 @@ export default function LearnFlow() {
     return (
       <Pronunciation
         tasks={pronunciationTasks}
-        onFinish={(totalScore) =>
-          navigate(`/results/${id}`, { state: { scorePercent: totalScore } })
+        onFinish={next}
+      />
+    );
+  }
+
+  if (stage === 3) {
+    return (
+      <Context
+        tasks={contextTasks}
+        onFinish={next}
+      />
+    );
+  }
+
+  if (stage === 4) {
+    return (
+      <Matching
+        tasks={matchingTasks}
+        onFinish={(score) =>
+          navigate(`/results/${id}`, { state: { scorePercent: score ?? 0 } })
         }
       />
     );
