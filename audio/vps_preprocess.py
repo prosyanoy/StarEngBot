@@ -18,8 +18,7 @@ from sqlalchemy.orm import sessionmaker
 
 MODELS_DIR = Path("/srv/audio/models")
 
-_filename_re = re.compile(r"^([A-Za-z][A-Za-z0-9]*?)(\d+)$")
-
+_filename_re = re.compile(r"^([a-z]+)_(\d+)$")
 
 def _collect_audio_counts() -> Dict[str, int]:
     """
@@ -34,17 +33,16 @@ def _collect_audio_counts() -> Dict[str, int]:
     for p in found:
         print("  ", p.name)
 
-    for ogg_path in found:
+    for ogg_path in MODELS_DIR.glob("*.ogg"):
+        # ogg_path.stem даст "bichloride_0" (без расширения)
         m = _filename_re.match(ogg_path.stem)
         if not m:
-            # пропускаем, если имя вида «foo_bar.ogg» или «123.ogg» и т.п.
             print(f"  SKIP (не match): {ogg_path.name}")
             continue
 
-        raw_word, idx_str = m.groups()
-        word = raw_word.lower()
+        word, idx_str = m.groups()
         idx = int(idx_str)
-        # сохраняем максимум:
+        # Запоминаем максимум (idx + 1 == количество записей)
         counts[word] = max(counts[word], idx + 1)
 
     print("DEBUG: counts =", counts)
